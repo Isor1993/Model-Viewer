@@ -1,0 +1,16 @@
+# Visual Studio user and build artifacts
+.vs/
+x64/
+Debug/
+Release/
+*.user
+*.aps
+*.VC.db
+*.VC.opendb
+*.opensdf
+*.sdf
+*.suo
+
+# OS noise
+Thumbs.db
+Desktop.ini
