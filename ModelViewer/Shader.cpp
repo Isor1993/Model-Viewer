@@ -1,5 +1,22 @@
+/*****************************************************************************
+* Project : Model Viewer
+* File    : Shader.cpp
+* Date    : 05.10.2026
+* Author  : Eric Rosenberg
+*
+* Description :
+* Implementation of CShader — see Shader.h. Three classless static
+* helpers carry the pipeline steps (read, compile, link); driver error
+* logs name the file so vert and frag failures stay distinguishable.
+*
+* History :
+* 05.10.2026 ER Created
+* 06.10.2026 ER Compile errors print the file path (sabotage test finding)
+* 07.10.2026 ER SetMat4 and SetInt for the V3 uniforms
+******************************************************************************/
 #include <glad/glad.h>
 #include "Shader.h"
+#include <glm/gtc/type_ptr.hpp>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -108,5 +125,27 @@ bool CShader::IsValid() const
 void CShader::Use()
 {
 	glUseProgram(m_uiProgramID);
+}
+
+void CShader::SetMat4(const char* a_szName, const glm::mat4& a_matValue)
+{
+	int32_t iLocation = glGetUniformLocation(m_uiProgramID, a_szName);
+	if (iLocation == -1)
+	{
+		std::cout << "ERROR: Uniform not found: " << a_szName << std::endl;
+		return;
+	}
+	glUniformMatrix4fv(iLocation, 1, GL_FALSE, glm::value_ptr(a_matValue));
+}
+
+void CShader::SetInt(const char* a_szName, int32_t a_iValue)
+{
+	int32_t iLocation = glGetUniformLocation(m_uiProgramID, a_szName);
+	if (iLocation == -1)
+	{
+		std::cout << "ERROR: Uniform not found: " << a_szName << std::endl;
+		return;
+	}
+	glUniform1i(iLocation, a_iValue);
 }
 

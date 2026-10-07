@@ -12,6 +12,7 @@
 *
 * History :
 * 04.10.2026 ER Created
+* 07.10.2026 ER Mouse drag, scroll wheel and aspect ratio for V3
 ******************************************************************************/
 #pragma once
 
@@ -39,7 +40,8 @@ public:
 	bool ShouldClose() const;
 
 	/// <summary>
-	/// Polls the key state once per frame; Escape flags the window to close.
+	/// Polls key and mouse state once per frame; Escape flags the window
+	/// to close, cursor movement becomes this frame's mouse deltas.
 	/// </summary>
 	void ProcessInput();
 
@@ -53,6 +55,39 @@ public:
 	/// </summary>
 	void PollEvents();
 
+	/// <summary>
+	/// Horizontal mouse movement of this frame while the left button is held.
+	/// </summary>
+	float GetMouseDeltaX() const;
+
+	/// <summary>
+	/// Vertical mouse movement of this frame while the left button is held.
+	/// </summary>
+	float GetMouseDeltaY() const;
+
+	/// <summary>
+	/// Scroll wheel movement collected since the last frame.
+	/// </summary>
+	float GetScrollDelta() const;
+
+	/// <summary>
+	/// Current width divided by height, for the projection matrix.
+	/// </summary>
+	float GetAspectRatio() const;
+
 private:
+	/// <summary>
+	/// GLFW callback for the scroll wheel. GLFW is a C library — the
+	/// window user pointer carries our object into the callback.
+	/// </summary>
+	static void HandleScroll(GLFWwindow* a_pWindow, double a_dOffsetX, double a_dOffsetY);
+
 	GLFWwindow* m_pWindow = nullptr;
+	double m_dLastCursorX = 0.0;
+	double m_dLastCursorY = 0.0;
+	bool m_bHasLastCursor = false;
+	float m_fMouseDeltaX = 0.0f;
+	float m_fMouseDeltaY = 0.0f;
+	float m_fScrollCollected = 0.0f;
+	float m_fScrollDelta = 0.0f;
 };
