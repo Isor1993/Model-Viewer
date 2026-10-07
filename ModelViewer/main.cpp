@@ -17,18 +17,29 @@
 ******************************************************************************/
 #include <glad/glad.h>
 #include "Window.h"
+#include "Shader.h"
+#include "Mesh.h"
 
 #include <cstdint>
 
-
 constexpr int32_t I_WINDOW_WIDTH = 1280;
 constexpr int32_t I_WINDOW_HEIGHT = 720;
+constexpr int32_t I_TRIANGLE_VERTEX_COUNT = 3;
+
 constexpr const char* SZ_WINDOW_TITLE = "Model Viewer";
+constexpr const char* SZ_SHADER_TRIANGLE_VERT_PATH = "Shaders/triangle.vert";
+constexpr const char* SZ_SHADER_TRIANGLE_FRAG_PATH = "Shaders/triangle.frag";
 
 constexpr float F_CLEAR_RED = 0.07f;
 constexpr float F_CLEAR_GREEN = 0.13f;
 constexpr float F_CLEAR_BLUE = 0.17f;
 constexpr float F_CLEAR_ALPHA = 1.0f;
+constexpr float F_TRIANGLE_VERTICES[] = 
+{
+	 0.0f,  0.5f, 0.0f,
+	-0.5f, -0.5f, 0.0f,
+	 0.5f, -0.5f, 0.0f
+};
 
 
 /// <summary>
@@ -41,6 +52,16 @@ int main()
 	{
 		return -1;
 	}
+	CShader shader(SZ_SHADER_TRIANGLE_VERT_PATH, SZ_SHADER_TRIANGLE_FRAG_PATH);
+	if (!shader.IsValid())
+	{
+		return -1;
+	}
+	CMesh mesh(F_TRIANGLE_VERTICES, I_TRIANGLE_VERTEX_COUNT);
+	if(!mesh.IsValid())
+	{
+		return -1;
+	}
 
 	glClearColor(F_CLEAR_RED, F_CLEAR_GREEN, F_CLEAR_BLUE, F_CLEAR_ALPHA);
 
@@ -49,9 +70,12 @@ int main()
 		window.ProcessInput();
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		shader.Use();
+		mesh.Draw();
+
 		window.SwapBuffers();
 		window.PollEvents();
 	}
-	
+
 	return 0;
 }
