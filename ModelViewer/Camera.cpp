@@ -20,6 +20,7 @@ constexpr float F_DISTANCE_PER_WHEEL_STEP = 0.3f;
 constexpr float F_PITCH_LIMIT_DEGREES = 89.0f;
 constexpr float F_MIN_DISTANCE = 1.5f;
 constexpr float F_MAX_DISTANCE = 20.0f;
+constexpr float F_MIN_EYE_HEIGHT = -0.8f;
 
 CCamera::CCamera(float a_fDistance)
 {
@@ -40,6 +41,7 @@ void CCamera::Rotate(float a_fYawDeltaPixels, float a_fPitchDeltaPixels)
 	{
 		m_fPitchDegrees = -F_PITCH_LIMIT_DEGREES;
 	}
+	ClampPitchToGround();
 }
 
 void CCamera::Zoom(float a_fWheelDelta)
@@ -55,6 +57,7 @@ void CCamera::Zoom(float a_fWheelDelta)
 	{
 		m_fDistance = F_MAX_DISTANCE;
 	}
+	ClampPitchToGround();
 }
 
 glm::mat4 CCamera::GetViewMatrix() const
@@ -72,4 +75,14 @@ glm::mat4 CCamera::GetViewMatrix() const
 		glm::vec3(fX, fY, fZ),
 		glm::vec3(0.0f, 0.0f, 0.0f),
 		glm::vec3(0.0f, 1.0f, 0.0f));
+}
+
+void CCamera::ClampPitchToGround()
+{
+	float fMinSine = F_MIN_EYE_HEIGHT / m_fDistance;
+	float fMinPitchDegrees = glm::degrees(std::asin(fMinSine));
+	if (m_fPitchDegrees < fMinPitchDegrees)
+	{
+		m_fPitchDegrees = fMinPitchDegrees;
+	}
 }

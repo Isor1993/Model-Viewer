@@ -14,6 +14,7 @@
 * 05.10.2026 ER Created
 * 06.10.2026 ER Compile errors print the file path (sabotage test finding)
 * 07.10.2026 ER SetMat4 and SetInt for the V3 uniforms
+* 07.10.2026 ER SetVec3 for the V4 light uniforms
 ******************************************************************************/
 #pragma once
 
@@ -50,6 +51,11 @@ public:
 	/// Sets an int uniform, e.g. which texture unit a sampler reads.
 	/// </summary>
 	void SetInt(const char* a_szName, int32_t a_iValue);
+
+	/// <summary>
+	/// Uploads a vec3 to the named uniform, e.g. light direction or color.
+	/// </summary>
+	void SetVec3(const char* a_szName, const glm::vec3& a_vec3Value);
 
 private:
 	uint32_t m_uiProgramID = 0;

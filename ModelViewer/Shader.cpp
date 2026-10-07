@@ -13,6 +13,7 @@
 * 05.10.2026 ER Created
 * 06.10.2026 ER Compile errors print the file path (sabotage test finding)
 * 07.10.2026 ER SetMat4 and SetInt for the V3 uniforms
+* 07.10.2026 ER SetVec3 for the V4 light uniforms
 ******************************************************************************/
 #include <glad/glad.h>
 #include "Shader.h"
@@ -147,5 +148,16 @@ void CShader::SetInt(const char* a_szName, int32_t a_iValue)
 		return;
 	}
 	glUniform1i(iLocation, a_iValue);
+}
+
+void CShader::SetVec3(const char* a_szName, const glm::vec3& a_vec3Value)
+{
+	int32_t iLocation = glGetUniformLocation(m_uiProgramID, a_szName);
+	if (iLocation == -1)
+	{
+		std::cout << "ERROR: Uniform not found: " << a_szName << std::endl;
+		return;
+	}
+	glUniform3fv(iLocation, 1, glm::value_ptr(a_vec3Value));
 }
 

@@ -17,6 +17,8 @@
 
 #include <glm/glm.hpp>
 
+
+
 class CCamera
 {
 public:
@@ -37,6 +39,8 @@ public:
 	/// View matrix for the current orbit position, looking at the origin.
 	/// </summary>
 	glm::mat4 GetViewMatrix() const;
+
+	void ClampPitchToGround();
 
 private:
 	float m_fYawDegrees = 0.0f;
