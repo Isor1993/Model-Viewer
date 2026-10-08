@@ -13,13 +13,23 @@
 * 07.10.2026 ER Created with GenerateSphereVertices (V3)
 * 07.10.2026 ER GenerateSkyboxCubeVertices (V5)
 * 07.10.2026 ER GenerateGroundPlaneVertices (V5 ground)
+* 08.10.2026 ER Sphere winding flipped to CCW — front culling exposed it (O1)
+* 08.10.2026 ER V6 review: named minimum sphere size and skybox vertex count
 ******************************************************************************/
+#include <glm/glm.hpp>
+#include <glm/gtc/constants.hpp>
+
+#include <cmath>
+
 #include "Geometry.h"
 #include "Mesh.h"
 
-#include <glm/glm.hpp>
-#include <glm/gtc/constants.hpp>
-#include <cmath>
+// A sphere needs its two pole caps; a ring only closes from 3 segments.
+constexpr int32_t I_MIN_SPHERE_RINGS = 2;
+constexpr int32_t I_MIN_SPHERE_SEGMENTS = 3;
+
+// 6 faces x 2 triangles x 3 corners = 36 vertices.
+constexpr int32_t I_SKYBOX_VERTEX_COUNT = 36;
 
 /// <summary>
 /// Point on the sphere surface. Phi runs top to bottom (latitude, 0 at
@@ -51,7 +61,7 @@ static void PushVertex(std::vector<float>& a_vertices, const glm::vec3& a_vPosit
 std::vector<float> GenerateSphereVertices(int32_t a_iRings, int32_t a_iSegments, float a_fRadius)
 {
 	std::vector<float> vertices;
-	if (a_iRings < 2 || a_iSegments < 3 || a_fRadius <= 0.0f)
+	if (a_iRings < I_MIN_SPHERE_RINGS || a_iSegments < I_MIN_SPHERE_SEGMENTS || a_fRadius <= 0.0f)
 	{
 		return vertices;
 	}
@@ -80,13 +90,14 @@ std::vector<float> GenerateSphereVertices(int32_t a_iRings, int32_t a_iSegments,
 			glm::vec3 vBottomRight = SpherePoint(fPhiBottom, fThetaRight, a_fRadius);
 
 			// On a sphere the normal is just the direction away from the center.
+			// Wound counter-clockwise seen from outside (OpenGL front-face default).
 			PushVertex(vertices, vTopLeft, vTopLeft / a_fRadius, fULeft, fVTop);
-			PushVertex(vertices, vBottomLeft, vBottomLeft / a_fRadius, fULeft, fVBottom);
 			PushVertex(vertices, vBottomRight, vBottomRight / a_fRadius, fURight, fVBottom);
+			PushVertex(vertices, vBottomLeft, vBottomLeft / a_fRadius, fULeft, fVBottom);
 
 			PushVertex(vertices, vTopLeft, vTopLeft / a_fRadius, fULeft, fVTop);
-			PushVertex(vertices, vBottomRight, vBottomRight / a_fRadius, fURight, fVBottom);
 			PushVertex(vertices, vTopRight, vTopRight / a_fRadius, fURight, fVTop);
+			PushVertex(vertices, vBottomRight, vBottomRight / a_fRadius, fURight, fVBottom);
 		}
 	}
 	return vertices;
@@ -107,7 +118,7 @@ std::vector<float> GenerateSkyboxCubeVertices()
 	};
 
 	// Two triangles per face; the cube is only ever seen from inside.
-	const int32_t INDICES[36] = {
+	const int32_t INDICES[I_SKYBOX_VERTEX_COUNT] = {
 		0, 1, 2,  2, 3, 0,
 		4, 7, 6,  6, 5, 4,
 		0, 3, 7,  7, 4, 0,
@@ -117,8 +128,8 @@ std::vector<float> GenerateSkyboxCubeVertices()
 	};
 
 	std::vector<float> vertices;
-	vertices.reserve(36 * I_MESH_FLOATS_PER_VERTEX);
-	for (int32_t i = 0; i < 36; ++i)
+	vertices.reserve(I_SKYBOX_VERTEX_COUNT * I_MESH_FLOATS_PER_VERTEX);
+	for (int32_t i = 0; i < I_SKYBOX_VERTEX_COUNT; ++i)
 	{
 		PushVertex(vertices, CORNERS[INDICES[i]], glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 0.0f);
 	}

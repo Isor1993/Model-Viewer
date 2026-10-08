@@ -10,20 +10,30 @@
 * History :
 * 04.10.2026 ER Created
 * 07.10.2026 ER Mouse drag, scroll wheel and aspect ratio for V3
+* 08.10.2026 ER V6 review: named constants, file helper made static
+* 08.10.2026 ER 4x MSAA window hint against jagged edges (V6 polish)
 ******************************************************************************/
-#include "Window.h"
-
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 #include <iostream>
+
+#include "Window.h"
+
+constexpr int32_t I_OPENGL_VERSION_MAJOR = 4;
+constexpr int32_t I_OPENGL_VERSION_MINOR = 6;
+
+constexpr int32_t I_MSAA_SAMPLES = 4;
+
+// Square fallback while the window is minimized (height 0).
+constexpr float F_FALLBACK_ASPECT_RATIO = 1.0f;
 
 /// <summary>
 /// GLFW callback: keeps the drawable area in sync when the window is resized.
 /// </summary>
 /// <param name="a_iWidth">New framebuffer width in pixels.</param>
 /// <param name="a_iHeight">New framebuffer height in pixels.</param>
-void HandleFramebufferSize(GLFWwindow*, int a_iWidth, int a_iHeight)
+static void HandleFramebufferSize(GLFWwindow*, int a_iWidth, int a_iHeight)
 {
 	glViewport(0, 0, a_iWidth, a_iHeight);
 }
@@ -31,15 +41,16 @@ void HandleFramebufferSize(GLFWwindow*, int a_iWidth, int a_iHeight)
 CWindow::CWindow(int32_t a_iWidth, int32_t a_iHeight, const char* a_szTitle)
 {
 	glfwInit();
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, I_OPENGL_VERSION_MAJOR);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, I_OPENGL_VERSION_MINOR);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_SAMPLES, I_MSAA_SAMPLES);
 
 	m_pWindow = glfwCreateWindow(a_iWidth, a_iHeight, a_szTitle, nullptr, nullptr);
 
 	if (m_pWindow == nullptr)
 	{
-		std::cout << "ERROR: GLFW window creation failed" << std::endl;		
+		std::cout << "ERROR: GLFW window creation failed" << std::endl;
 		return;
 	}
 	glfwMakeContextCurrent(m_pWindow);
@@ -50,9 +61,9 @@ CWindow::CWindow(int32_t a_iWidth, int32_t a_iHeight, const char* a_szTitle)
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
 		std::cout << "ERROR: GLAD initialization failed" << std::endl;
-		m_pWindow = nullptr;		
+		m_pWindow = nullptr;
 		return;
-	}	
+	}
 }
 
 CWindow::~CWindow()
@@ -61,7 +72,7 @@ CWindow::~CWindow()
 }
 
 bool CWindow::IsValid() const
-{	
+{
 	if (m_pWindow == nullptr)
 	{
 		return false;
@@ -123,7 +134,7 @@ float CWindow::GetAspectRatio() const
 	glfwGetFramebufferSize(m_pWindow, &iWidth, &iHeight);
 	if (iHeight <= 0)
 	{
-		return 1.0f;
+		return F_FALLBACK_ASPECT_RATIO;
 	}
 	return static_cast<float>(iWidth) / static_cast<float>(iHeight);
 }

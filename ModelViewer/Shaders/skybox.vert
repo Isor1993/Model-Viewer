@@ -1,5 +1,8 @@
 #version 460 core
 
+// Skybox: view arrives without translation (mat3 trim in C++), and
+// gl_Position.xyww pins the depth to 1.0 — drawn last with GL_LEQUAL.
+
 layout (location = 0) in vec3 a_Position;
 
 uniform mat4 u_View;

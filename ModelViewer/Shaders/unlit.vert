@@ -1,5 +1,7 @@
 #version 460 core
 
+// MVP pass-through for flat-colored objects (sun, shadow, outline hull).
+
 layout (location = 0) in vec3 a_Position;
 
 uniform mat4 u_Model;

@@ -1,5 +1,7 @@
 #version 460 core
 
+// Samples the cubemap along the cube corner's direction.
+
 in vec3 v_Direction;
 
 uniform samplerCube u_Skybox;

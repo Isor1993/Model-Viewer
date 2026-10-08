@@ -10,14 +10,19 @@
 *
 * History :
 * 07.10.2026 ER Created (V3)
+* 08.10.2026 ER V6 review: include order, named RGBA channel count
 ******************************************************************************/
 #include <glad/glad.h>
-#include "Texture.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
 #include <iostream>
+
+#include "Texture.h"
+
+// stb reports the channel count; 4 means the image carries an alpha channel.
+constexpr int32_t I_CHANNELS_RGBA = 4;
 
 CTexture::CTexture(const char* a_szPath)
 {
@@ -36,7 +41,7 @@ CTexture::CTexture(const char* a_szPath)
 
 	int32_t iInternalFormat = GL_RGB;
 	uint32_t uiPixelFormat = GL_RGB;
-	if (iChannels == 4)
+	if (iChannels == I_CHANNELS_RGBA)
 	{
 		iInternalFormat = GL_RGBA;
 		uiPixelFormat = GL_RGBA;
@@ -51,6 +56,7 @@ CTexture::CTexture(const char* a_szPath)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	// The zeros: mipmap base level 0, and the border argument must be 0 by spec.
 	glTexImage2D(GL_TEXTURE_2D, 0, iInternalFormat, iWidth, iHeight, 0, uiPixelFormat, GL_UNSIGNED_BYTE, pPixels);
 	glGenerateMipmap(GL_TEXTURE_2D);
 

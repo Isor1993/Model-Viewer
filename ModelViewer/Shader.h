@@ -15,6 +15,7 @@
 * 06.10.2026 ER Compile errors print the file path (sabotage test finding)
 * 07.10.2026 ER SetMat4 and SetInt for the V3 uniforms
 * 07.10.2026 ER SetVec3 for the V4 light uniforms
+* 08.10.2026 ER GetUniformLocation helper deduplicates the Set methods
 ******************************************************************************/
 #pragma once
 
@@ -58,5 +59,13 @@ public:
 	void SetVec3(const char* a_szName, const glm::vec3& a_vec3Value);
 
 private:
+
+	/// <summary>
+	/// Looks up the uniform by name; prints an error when the program has
+	/// no such uniform. The returned -1 is safe to hand to glUniform* —
+	/// the API ignores it by spec, so callers need no guard.
+	/// </summary>
+	int32_t GetUniformLocation(const char* a_szName) const;
+
 	uint32_t m_uiProgramID = 0;
 };

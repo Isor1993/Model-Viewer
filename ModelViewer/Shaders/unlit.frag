@@ -1,5 +1,7 @@
 #version 460 core
 
+// Flat color output — no lighting, no texture.
+
 uniform vec3 u_Color;
 
 out vec4 FragColor;

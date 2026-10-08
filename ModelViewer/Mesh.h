@@ -43,9 +43,5 @@ private:
 	uint32_t m_uiVBO = 0;
 
 	int32_t m_iVertexCount = 0;
-
-
-
-
 };
 

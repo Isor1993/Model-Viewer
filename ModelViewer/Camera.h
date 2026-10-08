@@ -12,12 +12,11 @@
 *
 * History :
 * 07.10.2026 ER Created (V3)
+* 08.10.2026 ER ClampPitchToGround private — only used internally (V6 review)
 ******************************************************************************/
 #pragma once
 
 #include <glm/glm.hpp>
-
-
 
 class CCamera
 {
@@ -40,9 +39,14 @@ public:
 	/// </summary>
 	glm::mat4 GetViewMatrix() const;
 
+private:
+
+	/// <summary>
+	/// Keeps the eye above the ground: raises the pitch floor so the
+	/// camera never dips below the minimum eye height.
+	/// </summary>
 	void ClampPitchToGround();
 
-private:
 	float m_fYawDegrees = 0.0f;
 	float m_fPitchDegrees = 0.0f;
 	float m_fDistance = 3.0f;

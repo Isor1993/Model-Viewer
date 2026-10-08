@@ -11,19 +11,26 @@
 *
 * History :
 * 07.10.2026 ER Created (V5)
+* 08.10.2026 ER V6 review: include order, face/channel constants, flip comment
 ******************************************************************************/
 #include <glad/glad.h>
-#include "SkyBox.h"
-
 #include <stb_image.h>
 
 #include <iostream>
 #include <string>
 
-static const char* SZ_FACE_FILE_NAMES[6] = { "right.png","left.png","top.png","bottom.png","front.png","back.png" };
+#include "SkyBox.h"
+
+constexpr int32_t I_CUBE_FACE_COUNT = 6;
+
+// stb reports the channel count; 4 means the image carries an alpha channel.
+constexpr int32_t I_CHANNELS_RGBA = 4;
+
+static const char* SZ_FACE_FILE_NAMES[I_CUBE_FACE_COUNT] = { "right.png","left.png","top.png","bottom.png","front.png","back.png" };
 
 CSkyBox::CSkyBox(const char* a_szFolderPath)
 {
+	// Cubemap faces are read top-down — no flip here (the 2D textures do flip).
 	stbi_set_flip_vertically_on_load(0);
 
 	glGenTextures(1, &m_uiTextureID);
@@ -35,7 +42,7 @@ CSkyBox::CSkyBox(const char* a_szFolderPath)
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	for (int32_t i = 0;i < 6;i++)
+	for (int32_t i = 0; i < I_CUBE_FACE_COUNT; ++i)
 	{
 		std::string sPath = std::string(a_szFolderPath) + "/" + SZ_FACE_FILE_NAMES[i];
 		int32_t iWidth = 0;
@@ -54,7 +61,7 @@ CSkyBox::CSkyBox(const char* a_szFolderPath)
 		int32_t iInternalFormat = GL_RGB;
 		uint32_t uiPixelFormat = GL_RGB;
 
-		if (iChannels == 4)
+		if (iChannels == I_CHANNELS_RGBA)
 		{
 			iInternalFormat = GL_RGBA;
 			uiPixelFormat = GL_RGBA;
@@ -63,12 +70,13 @@ CSkyBox::CSkyBox(const char* a_szFolderPath)
 		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, iInternalFormat, iWidth, iHeight, 0, uiPixelFormat, GL_UNSIGNED_BYTE, pPixels);
 		stbi_image_free(pPixels);
 	}
-
 }
+
 CSkyBox::~CSkyBox()
 {
 	glDeleteTextures(1, &m_uiTextureID);
 }
+
 bool CSkyBox::IsValid() const
 {
 	if (m_uiTextureID == 0)

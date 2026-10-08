@@ -10,10 +10,11 @@
 * History :
 * 07.10.2026 ER Created (V3)
 ******************************************************************************/
-#include "Camera.h"
-
 #include <glm/gtc/matrix_transform.hpp>
+
 #include <cmath>
+
+#include "Camera.h"
 
 constexpr float F_DEGREES_PER_PIXEL = 0.3f;
 constexpr float F_DISTANCE_PER_WHEEL_STEP = 0.3f;

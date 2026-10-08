@@ -14,13 +14,21 @@
 * 06.10.2026 ER Compile errors print the file path (sabotage test finding)
 * 07.10.2026 ER SetMat4 and SetInt for the V3 uniforms
 * 07.10.2026 ER SetVec3 for the V4 light uniforms
+* 08.10.2026 ER V6 review: named constants for log size and "not found"
 ******************************************************************************/
 #include <glad/glad.h>
-#include "Shader.h"
 #include <glm/gtc/type_ptr.hpp>
+
 #include <fstream>
 #include <iostream>
 #include <string>
+
+#include "Shader.h"
+
+constexpr int32_t I_SHADER_LOG_SIZE = 512;
+
+// glGetUniformLocation's "not found" return value (OpenGL API fact).
+constexpr int32_t I_UNIFORM_NOT_FOUND = -1;
 
 
 static std::string ReadTextFile(const char* a_szPath)
@@ -53,8 +61,8 @@ static uint32_t CompileShader(uint32_t a_uiType, const char* a_szSource, const c
 
 	if (iSuccess == 0)
 	{
-		char szLog[512];
-		glGetShaderInfoLog(uiShaderID, 512, nullptr, szLog);
+		char szLog[I_SHADER_LOG_SIZE];
+		glGetShaderInfoLog(uiShaderID, I_SHADER_LOG_SIZE, nullptr, szLog);
 		std::cout << "ERROR: Shader compile failed (" << a_szPath << "):\n" << szLog << std::endl;
 		glDeleteShader(uiShaderID);
 		return 0;
@@ -74,8 +82,8 @@ static uint32_t LinkProgram(uint32_t a_uiVertexID, uint32_t a_uiFragmentID)
 	glGetProgramiv(uiProgramID, GL_LINK_STATUS, &iSuccess);
 	if (iSuccess == 0)
 	{
-		char szLog[512];
-		glGetProgramInfoLog(uiProgramID, 512, nullptr, szLog);
+		char szLog[I_SHADER_LOG_SIZE];
+		glGetProgramInfoLog(uiProgramID, I_SHADER_LOG_SIZE, nullptr, szLog);
 		std::cout << "ERROR: Shader program link failed:\n" << szLog << std::endl;
 		glDeleteProgram(uiProgramID);
 		return 0;
@@ -128,36 +136,32 @@ void CShader::Use()
 	glUseProgram(m_uiProgramID);
 }
 
-void CShader::SetMat4(const char* a_szName, const glm::mat4& a_matValue)
+int32_t CShader::GetUniformLocation(const char* a_szName) const
 {
 	int32_t iLocation = glGetUniformLocation(m_uiProgramID, a_szName);
-	if (iLocation == -1)
+	if (iLocation == I_UNIFORM_NOT_FOUND)
 	{
 		std::cout << "ERROR: Uniform not found: " << a_szName << std::endl;
-		return;
 	}
+	return iLocation;
+}
+
+void CShader::SetMat4(const char* a_szName, const glm::mat4& a_matValue)
+{
+	// A not-found location (-1) is safe here: glUniform* ignores it by spec.
+	int32_t iLocation = GetUniformLocation(a_szName);
 	glUniformMatrix4fv(iLocation, 1, GL_FALSE, glm::value_ptr(a_matValue));
 }
 
 void CShader::SetInt(const char* a_szName, int32_t a_iValue)
 {
-	int32_t iLocation = glGetUniformLocation(m_uiProgramID, a_szName);
-	if (iLocation == -1)
-	{
-		std::cout << "ERROR: Uniform not found: " << a_szName << std::endl;
-		return;
-	}
+	int32_t iLocation = GetUniformLocation(a_szName);
 	glUniform1i(iLocation, a_iValue);
 }
 
 void CShader::SetVec3(const char* a_szName, const glm::vec3& a_vec3Value)
 {
-	int32_t iLocation = glGetUniformLocation(m_uiProgramID, a_szName);
-	if (iLocation == -1)
-	{
-		std::cout << "ERROR: Uniform not found: " << a_szName << std::endl;
-		return;
-	}
+	int32_t iLocation = GetUniformLocation(a_szName);
 	glUniform3fv(iLocation, 1, glm::value_ptr(a_vec3Value));
 }
 
