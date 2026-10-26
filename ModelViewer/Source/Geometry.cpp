@@ -5,6 +5,8 @@
 * Author  : Eric Rosenberg
 * Note    : Sphere generator written with AI assistance (Claude),
 *           reviewed and walked through together on 07.10.2026.
+*           Cube and pyramid built together step by step on 26.10.2026,
+*           typed by hand.
 *
 * Description :
 * Implementation of the geometry builders — see Geometry.h.
@@ -15,6 +17,8 @@
 * 07.10.2026 ER GenerateGroundPlaneVertices (V5 ground)
 * 08.10.2026 ER Sphere winding flipped to CCW — front culling exposed it (O1)
 * 08.10.2026 ER V6 review: named minimum sphere size and skybox vertex count
+* 26.10.2026 ER Cube and pyramid generators plus the two face helpers
+*               (OCE feedback: additional objects)
 ******************************************************************************/
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
@@ -30,6 +34,12 @@ constexpr int32_t I_MIN_SPHERE_SEGMENTS = 3;
 
 // 6 faces x 2 triangles x 3 corners = 36 vertices.
 constexpr int32_t I_SKYBOX_VERTEX_COUNT = 36;
+
+// Same 6 x 2 x 3 as the skybox cube, but with real normals and uvs.
+constexpr int32_t I_CUBE_VERTEX_COUNT = 36;
+
+// Base quad (6) plus four triangle sides (4 x 3).
+constexpr int32_t I_PYRAMID_VERTEX_COUNT = 18;
 
 /// <summary>
 /// Point on the sphere surface. Phi runs top to bottom (latitude, 0 at
@@ -56,6 +66,33 @@ static void PushVertex(std::vector<float>& a_vertices, const glm::vec3& a_vPosit
 	a_vertices.push_back(a_vNormal.z);
 	a_vertices.push_back(a_fU);
 	a_vertices.push_back(a_fV);
+}
+
+/// <summary>
+/// Appends one quad face as two triangles, all six vertices sharing
+/// a_vNormal. Corners are named as seen from outside, wound CCW.
+/// </summary>
+static void PushQuadFace(std::vector<float>& a_vertices, const glm::vec3& a_vBottomLeft, const glm::vec3& a_vBottomRight, const glm::vec3& a_vTopRight, const glm::vec3& a_vTopLeft, const glm::vec3& a_vNormal)
+{
+	PushVertex(a_vertices, a_vBottomLeft, a_vNormal, 0.0f, 0.0f);
+	PushVertex(a_vertices, a_vBottomRight, a_vNormal, 1.0f, 0.0f);
+	PushVertex(a_vertices, a_vTopRight, a_vNormal, 1.0f, 1.0f);
+
+	PushVertex(a_vertices, a_vTopRight, a_vNormal, 1.0f, 1.0f);
+	PushVertex(a_vertices, a_vTopLeft, a_vNormal, 0.0f, 1.0f);
+	PushVertex(a_vertices, a_vBottomLeft, a_vNormal, 0.0f, 0.0f);
+}
+
+/// <summary>
+/// Appends one triangle whose normal is computed from the corner order:
+/// wound CCW seen from outside, the cross product points outward.
+/// </summary>
+static void PushTriangleFace(std::vector<float>& a_vertices, const glm::vec3& a_vA, const glm::vec3& a_vB, const glm::vec3& a_vC)
+{
+	glm::vec3 vNormal = glm::normalize(glm::cross(a_vB - a_vA, a_vC - a_vA));
+	PushVertex(a_vertices, a_vA, vNormal, 0.0f, 0.0f);
+	PushVertex(a_vertices, a_vB, vNormal, 1.0f, 0.0f);
+	PushVertex(a_vertices, a_vC, vNormal, 0.5f, 1.0f);
 }
 
 std::vector<float> GenerateSphereVertices(int32_t a_iRings, int32_t a_iSegments, float a_fRadius)
@@ -158,5 +195,62 @@ std::vector<float> GenerateGroundPlaneVertices(float a_fHalfSize, float a_fHeigh
 	PushVertex(vertices, vBackLeft, UP, 0.0f, a_fUVTiles);
 	PushVertex(vertices, vFrontRight, UP, a_fUVTiles, 0.0f);
 	PushVertex(vertices, vBackRight, UP, a_fUVTiles, a_fUVTiles);
+	return vertices;
+}
+
+std::vector<float> GenerateCubeVertices(float a_fHalfSize)
+{
+	std::vector<float> vertices;
+	if (a_fHalfSize <= 0.0f)
+	{
+		return vertices;
+	}
+
+	const glm::vec3 CORNERS[8] = {
+		glm::vec3(-a_fHalfSize, -a_fHalfSize, -a_fHalfSize),
+		glm::vec3(a_fHalfSize, -a_fHalfSize, -a_fHalfSize),
+		glm::vec3(a_fHalfSize,  a_fHalfSize, -a_fHalfSize),
+		glm::vec3(-a_fHalfSize,  a_fHalfSize, -a_fHalfSize),
+		glm::vec3(-a_fHalfSize, -a_fHalfSize,  a_fHalfSize),
+		glm::vec3(a_fHalfSize, -a_fHalfSize,  a_fHalfSize),
+		glm::vec3(a_fHalfSize,  a_fHalfSize,  a_fHalfSize),
+		glm::vec3(-a_fHalfSize,  a_fHalfSize,  a_fHalfSize)
+	};
+
+	// One call per face: front, back, left, right, top, bottom.
+	vertices.reserve(I_CUBE_VERTEX_COUNT * I_MESH_FLOATS_PER_VERTEX);
+	PushQuadFace(vertices, CORNERS[4], CORNERS[5], CORNERS[6], CORNERS[7], glm::vec3(0.0f, 0.0f, 1.0f));
+	PushQuadFace(vertices, CORNERS[1], CORNERS[0], CORNERS[3], CORNERS[2], glm::vec3(0.0f, 0.0f, -1.0f));
+	PushQuadFace(vertices, CORNERS[0], CORNERS[4], CORNERS[7], CORNERS[3], glm::vec3(-1.0f, 0.0f, 0.0f));
+	PushQuadFace(vertices, CORNERS[5], CORNERS[1], CORNERS[2], CORNERS[6], glm::vec3(1.0f, 0.0f, 0.0f));
+	PushQuadFace(vertices, CORNERS[7], CORNERS[6], CORNERS[2], CORNERS[3], glm::vec3(0.0f, 1.0f, 0.0f));
+	PushQuadFace(vertices, CORNERS[0], CORNERS[1], CORNERS[5], CORNERS[4], glm::vec3(0.0f, -1.0f, 0.0f));
+	return vertices;
+}
+
+std::vector<float> GeneratePyramidVertices(float a_fHalfSize, float a_fHeight)
+{
+	std::vector<float> vertices;
+	if (a_fHalfSize <= 0.0f || a_fHeight <= 0.0f)
+	{
+		return vertices;
+	}
+
+	const glm::vec3 BASE[4] = {
+		glm::vec3(-a_fHalfSize, 0.0f, -a_fHalfSize),
+		glm::vec3(a_fHalfSize, 0.0f, -a_fHalfSize),
+		glm::vec3(a_fHalfSize, 0.0f,  a_fHalfSize),
+		glm::vec3(-a_fHalfSize, 0.0f,  a_fHalfSize)
+	};
+	const glm::vec3 TIP = glm::vec3(0.0f, a_fHeight, 0.0f);
+
+	vertices.reserve(I_PYRAMID_VERTEX_COUNT * I_MESH_FLOATS_PER_VERTEX);
+	// The base faces down, so its corners are named as seen from below.
+	PushQuadFace(vertices, BASE[0], BASE[1], BASE[2], BASE[3], glm::vec3(0.0f, -1.0f, 0.0f));
+	// Each side runs along its base edge, then up to the tip.
+	PushTriangleFace(vertices, BASE[3], BASE[2], TIP);
+	PushTriangleFace(vertices, BASE[2], BASE[1], TIP);
+	PushTriangleFace(vertices, BASE[1], BASE[0], TIP);
+	PushTriangleFace(vertices, BASE[0], BASE[3], TIP);
 	return vertices;
 }

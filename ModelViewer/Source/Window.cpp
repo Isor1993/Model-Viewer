@@ -50,10 +50,12 @@ CWindow::CWindow(int32_t a_iWidth, int32_t a_iHeight, const char* a_szTitle)
 
 	if (m_pWindow == nullptr)
 	{
+		glfwTerminate(); // sicherer das es keine zwischen states gibt 15.10.26
 		std::cout << "ERROR: GLFW window creation failed" << std::endl;
-		return;
-	}
+		return;	}
+
 	glfwMakeContextCurrent(m_pWindow);
+	//glfwSwapInterval(1);// neu 15.10.26 ???
 	glfwSetFramebufferSizeCallback(m_pWindow, HandleFramebufferSize);
 	glfwSetWindowUserPointer(m_pWindow, this);
 	glfwSetScrollCallback(m_pWindow, HandleScroll);
@@ -99,7 +101,7 @@ void CWindow::ProcessInput()
 	m_fMouseDeltaX = 0.0f;
 	m_fMouseDeltaY = 0.0f;
 	if (m_bHasLastCursor && glfwGetMouseButton(m_pWindow, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-	{
+	{		
 		m_fMouseDeltaX = static_cast<float>(dCursorX - m_dLastCursorX);
 		m_fMouseDeltaY = static_cast<float>(dCursorY - m_dLastCursorY);
 	}

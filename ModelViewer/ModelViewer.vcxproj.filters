@@ -1,0 +1,125 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\Libraries\glad\src\glad.c" />
+    <ClCompile Include="Source\Application.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Camera.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Geometry.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\main.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Mesh.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Shader.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\SkyBox.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Texture.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Window.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Header\Application.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\Camera.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\Geometry.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\Mesh.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\Shader.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\SkyBox.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\Texture.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\Window.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Textures\Skybox\back.png">
+      <Filter>Textures</Filter>
+    </None>
+    <None Include="Textures\ball_color.png">
+      <Filter>Textures</Filter>
+    </None>
+    <None Include="Textures\Skybox\bottom.png">
+      <Filter>Textures</Filter>
+    </None>
+    <None Include="Textures\Skybox\front.png">
+      <Filter>Textures</Filter>
+    </None>
+    <None Include="Textures\grass_color.png">
+      <Filter>Textures</Filter>
+    </None>
+    <None Include="Textures\Skybox\left.png">
+      <Filter>Textures</Filter>
+    </None>
+    <None Include="Textures\Skybox\right.png">
+      <Filter>Textures</Filter>
+    </None>
+    <None Include="Textures\Skybox\top.png">
+      <Filter>Textures</Filter>
+    </None>
+    <None Include="Shaders\skybox.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\skybox.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\toon.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\toon.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\unlit.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\unlit.vert">
+      <Filter>Shaders</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source">
+      <UniqueIdentifier>{f70f58cd-4ace-4232-80b3-b9289dfc9884}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header">
+      <UniqueIdentifier>{69581efb-ed73-43dd-bd4e-c827708ac5e1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{f562cd0c-2f67-47af-840a-f08179c6f1e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Textures">
+      <UniqueIdentifier>{42dd07bb-d3de-4d2a-82c3-be26f786ad67}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Textures\cube_color.png">
+      <Filter>Textures</Filter>
+    </Image>
+    <Image Include="Textures\pyramid_color.png">
+      <Filter>Textures</Filter>
+    </Image>
+  </ItemGroup>
+</Project>

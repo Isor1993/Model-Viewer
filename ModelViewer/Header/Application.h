@@ -15,6 +15,10 @@
 * 08.10.2026 ER Created — scene and loop moved out of main (V6 cleanup)
 * 08.10.2026 ER Reworked to pointer members, Initialize groups and six
 *               single-purpose render stations (design review with Isor)
+* 26.10.2026 ER Cube and pyramid added; shadow and outline stations
+*               parameterized for any object (OCE feedback)
+* 26.10.2026 ER Own CC0 textures for cube and pyramid; contact shadow
+*               squashes the object's own mesh (footprint look)
 ******************************************************************************/
 #pragma once
 
@@ -61,13 +65,15 @@ private:
 	bool InitializeShaders();
 
 	/// <summary>
-	/// Generates the vertex data and uploads sphere, ground and skybox
-	/// cube as GPU meshes; the CPU data dies at the end of the method.
+	/// Generates the vertex data and uploads sphere, ground, skybox
+	/// cube, cube and pyramid as GPU meshes; the CPU data dies at the
+	/// end of the method.
 	/// </summary>
 	bool InitializeMeshes();
 
 	/// <summary>
-	/// Loads the grass and ball textures and the skybox cubemap.
+	/// Loads the grass, ball, cube and pyramid textures and the skybox
+	/// cubemap.
 	/// </summary>
 	bool InitializeTextures();
 
@@ -75,6 +81,16 @@ private:
 	/// Toon ball in the center, at the origin.
 	/// </summary>
 	void RenderBall();
+
+	/// <summary>
+	/// Toon cube left of the ball, placed via its model matrix.
+	/// </summary>
+	void RenderCube();
+
+	/// <summary>
+	/// Toon pyramid right of the ball, standing on the ground.
+	/// </summary>
+	void RenderPyramid();
 
 	/// <summary>
 	/// Grass ground plane under the ball.
@@ -87,15 +103,22 @@ private:
 	void RenderSun();
 
 	/// <summary>
-	/// Flattened contact shadow under the ball.
+	/// Flattened contact shadow: the object's own mesh squashed flat,
+	/// so every object marks its footprint on the ground.
 	/// </summary>
-	void RenderShadow();
+	/// <param name="a_pMesh">Mesh to squash into the blob.</param>
+	/// <param name="a_vPosition">Object position; only x/z are used.</param>
+	/// <param name="a_fFootprintScale">Blob size relative to the mesh.</param>
+	/// <param name="a_fOffset">Shift along the light, per object.</param>
+	void RenderShadow(CMesh* a_pMesh, const glm::vec3& a_vPosition, float a_fFootprintScale, float a_fOffset);
 
 	/// <summary>
-	/// Inverted-hull outline: the sphere again, scaled up, black, with
-	/// front faces culled so only the back shell's rim survives.
+	/// Inverted-hull outline: the given mesh again, scaled up, black,
+	/// with front faces culled so only the back shell's rim survives.
 	/// </summary>
-	void RenderOutline();
+	/// <param name="a_pMesh">Mesh to outline (needs CCW winding).</param>
+	/// <param name="a_vPosition">Where the object stands.</param>
+	void RenderOutline(CMesh* a_pMesh, const glm::vec3& a_vPosition);
 
 	/// <summary>
 	/// Skybox last, at depth 1.0 (xyww), so it only fills untouched pixels.
@@ -112,10 +135,14 @@ private:
 
 	CMesh* m_pSphereMesh = nullptr;
 	CMesh* m_pGroundMesh = nullptr;
+	CMesh* m_pCubeMesh = nullptr;
+	CMesh* m_pPyramidMesh = nullptr;
 	CMesh* m_pSkyboxMesh = nullptr;
 
 	CTexture* m_pGrassTexture = nullptr;
 	CTexture* m_pBallTexture = nullptr;
+	CTexture* m_pCubeTexture = nullptr;
+	CTexture* m_pPyramidTexture = nullptr;
 	CSkyBox* m_pSkybox = nullptr;
 
 	// The matrices of the running frame — set once per frame in Run,

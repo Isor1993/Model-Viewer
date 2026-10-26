@@ -51,7 +51,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories>$(SolutionDir)Libraries\glfw\include;$(SolutionDir)Libraries\glad\include;$(SolutionDir)Libraries\glm;$(SolutionDir)Libraries\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Header;$(SolutionDir)Libraries\glfw\include;$(SolutionDir)Libraries\glad\include;$(SolutionDir)Libraries\glm;$(SolutionDir)Libraries\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <TreatAngleIncludeAsExternal>true</TreatAngleIncludeAsExternal>
       <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
       <DisableAnalyzeExternal>true</DisableAnalyzeExternal>
@@ -80,7 +80,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories>$(SolutionDir)Libraries\glfw\include;$(SolutionDir)Libraries\glad\include;$(SolutionDir)Libraries\glm;$(SolutionDir)Libraries\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Header;$(SolutionDir)Libraries\glfw\include;$(SolutionDir)Libraries\glad\include;$(SolutionDir)Libraries\glm;$(SolutionDir)Libraries\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <TreatAngleIncludeAsExternal>true</TreatAngleIncludeAsExternal>
       <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
       <DisableAnalyzeExternal>true</DisableAnalyzeExternal>
@@ -100,26 +100,26 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Application.cpp" />
-    <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="Geometry.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="Mesh.cpp" />
-    <ClCompile Include="Shader.cpp" />
-    <ClCompile Include="SkyBox.cpp" />
-    <ClCompile Include="Texture.cpp" />
-    <ClCompile Include="Window.cpp" />
+    <ClCompile Include="Source\Application.cpp" />
+    <ClCompile Include="Source\Camera.cpp" />
+    <ClCompile Include="Source\Geometry.cpp" />
+    <ClCompile Include="Source\main.cpp" />
+    <ClCompile Include="Source\Mesh.cpp" />
+    <ClCompile Include="Source\Shader.cpp" />
+    <ClCompile Include="Source\SkyBox.cpp" />
+    <ClCompile Include="Source\Texture.cpp" />
+    <ClCompile Include="Source\Window.cpp" />
     <ClCompile Include="..\Libraries\glad\src\glad.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Application.h" />
-    <ClInclude Include="Camera.h" />
-    <ClInclude Include="Geometry.h" />
-    <ClInclude Include="Mesh.h" />
-    <ClInclude Include="Shader.h" />
-    <ClInclude Include="SkyBox.h" />
-    <ClInclude Include="Texture.h" />
-    <ClInclude Include="Window.h" />
+    <ClInclude Include="Header\Application.h" />
+    <ClInclude Include="Header\Camera.h" />
+    <ClInclude Include="Header\Geometry.h" />
+    <ClInclude Include="Header\Mesh.h" />
+    <ClInclude Include="Header\Shader.h" />
+    <ClInclude Include="Header\SkyBox.h" />
+    <ClInclude Include="Header\Texture.h" />
+    <ClInclude Include="Header\Window.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\skybox.frag" />
@@ -136,6 +136,10 @@
     <None Include="Textures\Skybox\left.png" />
     <None Include="Textures\Skybox\right.png" />
     <None Include="Textures\Skybox\top.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Textures\cube_color.png" />
+    <Image Include="Textures\pyramid_color.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

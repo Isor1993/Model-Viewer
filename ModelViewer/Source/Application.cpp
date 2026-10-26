@@ -13,6 +13,10 @@
 * 08.10.2026 ER Reworked to pointer members, Initialize groups and six
 *               single-purpose render stations (design review with Isor)
 * 08.10.2026 ER MSAA enabled (V6 polish)
+* 26.10.2026 ER Cube and pyramid added; shadow and outline stations
+*               parameterized for any object (OCE feedback)
+* 26.10.2026 ER Own CC0 textures for cube and pyramid; contact shadow
+*               squashes the object's own mesh (footprint look)
 ******************************************************************************/
 #include <glad/glad.h>
 #include <glm/glm.hpp>
@@ -33,6 +37,8 @@ constexpr const char* SZ_SHADER_SKYBOX_FRAG_PATH = "Shaders/skybox.frag";
 constexpr const char* SZ_TEXTURE_BALL_PATH = "Textures/ball_color.png";
 constexpr const char* SZ_TEXTURE_GRASS_PATH = "Textures/grass_color.png";
 constexpr const char* SZ_SKYBOX_FOLDER_PATH = "Textures/Skybox";
+constexpr const char* SZ_TEXTURE_CUBE_PATH = "Textures/cube_color.png";
+constexpr const char* SZ_TEXTURE_PYRAMID_PATH = "Textures/pyramid_color.png";
 
 // --- camera and projection ---
 constexpr float F_CAMERA_DISTANCE = 3.0f;
@@ -46,22 +52,38 @@ constexpr float F_CLEAR_GREEN = 0.13f;
 constexpr float F_CLEAR_BLUE = 0.17f;
 constexpr float F_CLEAR_ALPHA = 1.0f;
 
-// --- scene objects: ball, ground, sun, shadow, outline ---
-constexpr int32_t I_SPHERE_RINGS = 32;
-constexpr int32_t I_SPHERE_SEGMENTS = 32;
-constexpr float F_SPHERE_RADIUS = 1.0f;
-
+// --- scene objects: ground, ball, cube, pyramid, sun ---
 constexpr float F_GROUND_HALF_SIZE = 40.0f;
 constexpr float F_GROUND_HEIGHT = -1.0f;
 constexpr float F_GROUND_UV_TILES = 5.0f;
 
+constexpr int32_t I_SPHERE_RINGS = 32;
+constexpr int32_t I_SPHERE_SEGMENTS = 32;
+constexpr float F_SPHERE_RADIUS = 1.0f;
+const glm::vec3 VEC3_BALL_POSITION = glm::vec3(0.0f, 0.0f, 0.0f);
+
+constexpr float F_CUBE_HALF_SIZE = 0.5f;
+const glm::vec3 VEC3_CUBE_POSITION = glm::vec3(-3.5f, -0.5f, 0.0f);
+
+constexpr float F_PYRAMID_HALF_SIZE = 0.7f;
+constexpr float F_PYRAMID_HEIGHT = 1.4f;
+const glm::vec3 VEC3_PYRAMID_POSITION = glm::vec3(3.5f, F_GROUND_HEIGHT, 0.0f);
+
 constexpr float F_SUN_DISTANCE = 60.0f;
 constexpr float F_SUN_RADIUS = 2.5f;
 
-constexpr float F_SHADOW_BLOB_RADIUS = 1.1f;
+// --- shadow blobs and outline ---
 constexpr float F_SHADOW_BLOB_THICKNESS = 0.01f;
 constexpr float F_SHADOW_BLOB_HEIGHT = -0.99f;
-constexpr float F_SHADOW_BLOB_OFFSET = 0.88f;
+
+constexpr float F_BALL_SHADOW_SCALE = 1.1f;
+constexpr float F_CUBE_SHADOW_SCALE = 1.1f;
+constexpr float F_PYRAMID_SHADOW_SCALE = 1.05f;
+
+// Taller objects push their contact shadow further along the light.
+constexpr float F_BALL_SHADOW_OFFSET = 0.88f;
+constexpr float F_CUBE_SHADOW_OFFSET = 0.35f;
+constexpr float F_PYRAMID_SHADOW_OFFSET = 0.45f;
 
 constexpr float F_OUTLINE_SCALE = 1.03f;
 
@@ -86,9 +108,13 @@ CApplication::CApplication()
 CApplication::~CApplication()
 {
 	delete m_pSkybox;
+	delete m_pPyramidTexture;
+	delete m_pCubeTexture;
 	delete m_pBallTexture;
 	delete m_pGrassTexture;
 	delete m_pSkyboxMesh;
+	delete m_pCubeMesh;
+	delete m_pPyramidMesh;
 	delete m_pGroundMesh;
 	delete m_pSphereMesh;
 	delete m_pSkyboxShader;
@@ -165,6 +191,20 @@ bool CApplication::InitializeMeshes()
 	{
 		return false;
 	}
+
+	std::vector<float> cubeVertexData = GenerateCubeVertices(F_CUBE_HALF_SIZE);
+	m_pCubeMesh = new CMesh(cubeVertexData.data(), static_cast<int32_t>(cubeVertexData.size()) / I_MESH_FLOATS_PER_VERTEX);
+	if (!m_pCubeMesh->IsValid())
+	{
+		return false;
+	}
+
+	std::vector<float> pyramidVertexData = GeneratePyramidVertices(F_PYRAMID_HALF_SIZE, F_PYRAMID_HEIGHT);
+	m_pPyramidMesh = new CMesh(pyramidVertexData.data(), static_cast<int32_t>(pyramidVertexData.size()) / I_MESH_FLOATS_PER_VERTEX);
+	if (!m_pPyramidMesh->IsValid())
+	{
+		return false;
+	}
 	return true;
 }
 
@@ -178,6 +218,18 @@ bool CApplication::InitializeTextures()
 
 	m_pBallTexture = new CTexture(SZ_TEXTURE_BALL_PATH);
 	if (!m_pBallTexture->IsValid())
+	{
+		return false;
+	}
+
+	m_pCubeTexture = new CTexture(SZ_TEXTURE_CUBE_PATH);
+	if (!m_pCubeTexture->IsValid())
+	{
+		return false;
+	}
+
+	m_pPyramidTexture = new CTexture(SZ_TEXTURE_PYRAMID_PATH);
+	if (!m_pPyramidTexture->IsValid())
 	{
 		return false;
 	}
@@ -209,10 +261,16 @@ void CApplication::Run()
 			F_FAR_PLANE);
 
 		RenderBall();
+		RenderCube();
+		RenderPyramid();
 		RenderGround();
 		RenderSun();
-		RenderShadow();
-		RenderOutline();
+		RenderShadow(m_pSphereMesh, VEC3_BALL_POSITION, F_BALL_SHADOW_SCALE, F_BALL_SHADOW_OFFSET);
+		RenderShadow(m_pCubeMesh, VEC3_CUBE_POSITION, F_CUBE_SHADOW_SCALE, F_CUBE_SHADOW_OFFSET);
+		RenderShadow(m_pPyramidMesh, VEC3_PYRAMID_POSITION, F_PYRAMID_SHADOW_SCALE, F_PYRAMID_SHADOW_OFFSET);
+		RenderOutline(m_pSphereMesh, VEC3_BALL_POSITION);
+		RenderOutline(m_pCubeMesh, VEC3_CUBE_POSITION);
+		RenderOutline(m_pPyramidMesh, VEC3_PYRAMID_POSITION);
 		RenderSkybox();
 
 		m_pWindow->SwapBuffers();
@@ -234,6 +292,36 @@ void CApplication::RenderBall()
 
 	m_pBallTexture->Bind(0);
 	m_pSphereMesh->Draw();
+}
+void CApplication::RenderCube()
+{
+	m_pToonShader->Use();
+	m_pToonShader->SetInt("u_Texture", 0);
+	m_pToonShader->SetVec3("u_LightDirection", VEC3_LIGHT_DIRECTION);
+	m_pToonShader->SetVec3("u_LightColor", VEC3_LIGHT_COLOR);
+
+	glm::mat4 matModel = glm::translate(MAT4_IDENTITY, VEC3_CUBE_POSITION);
+	m_pToonShader->SetMat4("u_Model", matModel);
+	m_pToonShader->SetMat4("u_View", m_matView);
+	m_pToonShader->SetMat4("u_Projection", m_matProjection);
+
+	m_pCubeTexture->Bind(0);
+	m_pCubeMesh->Draw();
+}
+void CApplication::RenderPyramid()
+{
+	m_pToonShader->Use();
+	m_pToonShader->SetInt("u_Texture", 0);
+	m_pToonShader->SetVec3("u_LightDirection", VEC3_LIGHT_DIRECTION);
+	m_pToonShader->SetVec3("u_LightColor", VEC3_LIGHT_COLOR);
+
+	glm::mat4 matModel = glm::translate(MAT4_IDENTITY, VEC3_PYRAMID_POSITION);
+	m_pToonShader->SetMat4("u_Model", matModel);
+	m_pToonShader->SetMat4("u_View", m_matView);
+	m_pToonShader->SetMat4("u_Projection", m_matProjection);
+
+	m_pPyramidTexture->Bind(0);
+	m_pPyramidMesh->Draw();
 }
 
 void CApplication::RenderGround()
@@ -266,34 +354,35 @@ void CApplication::RenderSun()
 	m_pSphereMesh->Draw();
 }
 
-void CApplication::RenderShadow()
+void CApplication::RenderShadow(CMesh* a_pMesh, const glm::vec3& a_vPosition, float a_fFootprintScale, float a_fOffset)
 {
 	m_pUnlitShader->Use();
 	m_pUnlitShader->SetMat4("u_View", m_matView);
 	m_pUnlitShader->SetMat4("u_Projection", m_matProjection);
 
 	glm::vec3 vLightDirection = glm::normalize(VEC3_LIGHT_DIRECTION);
-	glm::vec3 vShadowPosition = glm::vec3(vLightDirection.x * F_SHADOW_BLOB_OFFSET, F_SHADOW_BLOB_HEIGHT, vLightDirection.z * F_SHADOW_BLOB_OFFSET);
+	glm::vec3 vShadowPosition = glm::vec3(a_vPosition.x + vLightDirection.x * a_fOffset, F_SHADOW_BLOB_HEIGHT, a_vPosition.z + vLightDirection.z * a_fOffset);
 	glm::mat4 matShadowModel = glm::translate(MAT4_IDENTITY, vShadowPosition);
-	matShadowModel = glm::scale(matShadowModel, glm::vec3(F_SHADOW_BLOB_RADIUS, F_SHADOW_BLOB_THICKNESS, F_SHADOW_BLOB_RADIUS));
+	matShadowModel = glm::scale(matShadowModel, glm::vec3(a_fFootprintScale, F_SHADOW_BLOB_THICKNESS, a_fFootprintScale));
 	m_pUnlitShader->SetMat4("u_Model", matShadowModel);
 	m_pUnlitShader->SetVec3("u_Color", VEC3_SHADOW_BLOB_COLOR);
-	m_pSphereMesh->Draw();
+	a_pMesh->Draw();
 }
 
-void CApplication::RenderOutline()
+void CApplication::RenderOutline(CMesh* a_pMesh, const glm::vec3& a_vPosition)
 {
 	m_pUnlitShader->Use();
 	m_pUnlitShader->SetMat4("u_View", m_matView);
 	m_pUnlitShader->SetMat4("u_Projection", m_matProjection);
 
-	glm::mat4 matOutlineModel = glm::scale(MAT4_IDENTITY, glm::vec3(F_OUTLINE_SCALE, F_OUTLINE_SCALE, F_OUTLINE_SCALE));
+	glm::mat4 matOutlineModel = glm::translate(MAT4_IDENTITY, a_vPosition);
+	matOutlineModel = glm::scale(matOutlineModel, glm::vec3(F_OUTLINE_SCALE, F_OUTLINE_SCALE, F_OUTLINE_SCALE));
 	m_pUnlitShader->SetMat4("u_Model", matOutlineModel);
 	m_pUnlitShader->SetVec3("u_Color", VEC3_OUTLINE_COLOR);
 
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_FRONT);
-	m_pSphereMesh->Draw();
+	a_pMesh->Draw();
 	glCullFace(GL_BACK);
 	glDisable(GL_CULL_FACE);
 }

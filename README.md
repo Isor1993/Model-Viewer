@@ -1,10 +1,10 @@
 # Model Viewer
 
 C++/OpenGL-3D-Model-Viewer — die Aufgabe „3D Model-Viewer" aus Modul
-5FSC0XD101 „Creative Studio 1" (Games Programming). Zeigt ein
-texturiertes 3D-Modell mit frei drehbarer Orbit-Kamera, einem
-Richtungslicht, einer Cubemap-Skybox und einem Stylized-Toon-Look mit
-Inverted-Hull-Outline.
+5FSC0XD101 „Creative Studio 1" (Games Programming). Zeigt drei
+prozedural erzeugte, texturierte 3D-Modelle (Kugel, Würfel, Pyramide)
+mit frei drehbarer Orbit-Kamera, einem Richtungslicht, einer
+Cubemap-Skybox und einem Stylized-Toon-Look mit Inverted-Hull-Outline.
 
 ## Bauen und Starten
 
@@ -30,8 +30,8 @@ Inverted-Hull-Outline.
 |---|---|
 | Anwendungsfenster | `Window.*` — GLFW, OpenGL 4.6 Core, 4x MSAA |
 | Programmierbare Render-Pipeline (Vertex- und Pixel-Shader) | `Shaders/` — drei selbstgeschriebene Paare: toon, unlit, skybox |
-| Sinnvoll strukturierter, erweiterbarer Programmaufbau | `Application.*` besitzt die Szene (Zeiger-Member, gruppierte Initialisierung, je Objekt eine Render-Station); jede RAII-Klasse besitzt genau eine GPU-Ressource |
-| Mindestens ein texturiertes 3D-Modell | prozedural erzeugte UV-Kugel (`Geometry.cpp`) mit `Textures/ball_color.png` |
+| Sinnvoll strukturierter, erweiterbarer Programmaufbau | `Application.*` besitzt die Szene (Zeiger-Member, gruppierte Initialisierung, je Objekt eine Render-Station); jede RAII-Klasse besitzt genau eine GPU-Ressource; Projektordner nach Typ getrennt (Source, Header, Shaders, Textures) |
+| Mindestens ein texturiertes 3D-Modell | drei prozedural erzeugte Modelle: UV-Kugel, Würfel und Pyramide (`Geometry.cpp`) |
 | Mindestens ein Licht | Richtungslicht als Uniforms, sichtbar gemacht durch die Sonnenscheibe |
 | Bewegbare Kamera | Orbit-Kamera (`Camera.*`) — Drehen, Neigen und Zoom mit Anschlägen |
 | Skybox oder Ähnliches | echte Cubemap (`SkyBox.*`, CC0-Himmelspaket) |
@@ -40,7 +40,13 @@ Inverted-Hull-Outline.
 
 - Stylized-Toon-Shading: weiche smoothstep-Kante um die
   Schattenschwelle, kühler Schatten-Tint statt Schwarz
-- Inverted-Hull-Outline: die Kugel ein zweites Mal gezeichnet,
+- Zwei Zusatz-Modelle neben der Pflicht-Kugel: Würfel (harte Kanten
+  über eine Normale je Fläche) und Pyramide (Seiten-Normalen per
+  Kreuzprodukt), beide mit eigenem Generator und eigener
+  CC0-Textur (Holzplanken und Sandstein, ambientcg.com)
+- Kontakt-Schatten als plattgedrücktes Objekt-Mesh — jedes Modell
+  zeichnet seine eigene Standfläche auf den Boden
+- Inverted-Hull-Outline: jedes Modell ein zweites Mal gezeichnet,
   skaliert, schwarz, Vorderseiten per Culling entfernt
 - Wiese mit Horizont-Fade, Sonnenscheibe und Kontakt-Schatten
 - Warnungsfrei auf Warnstufe 4 inklusive VS-Code-Analyse
@@ -51,11 +57,12 @@ Inverted-Hull-Outline.
 ```
 ModelViewer.sln
 ModelViewer/
-  main.cpp            Einstieg: Fenster + Application + Run
-  Application.*       besitzt die Szene und die Render-Schleife
-  Window.*  Camera.*  Shader.*  Mesh.*  Texture.*  SkyBox.*
-  Geometry.*          CPU-Mesh-Builder (Kugel, Boden, Himmelswürfel)
+  Source/             alle .cpp: main (Einstieg), Application (Szene
+                      und Render-Schleife), Geometry (CPU-Mesh-Builder:
+                      Kugel, Würfel, Pyramide, Boden, Himmelswürfel),
+                      Window, Camera, Shader, Mesh, Texture, SkyBox
+  Header/             die zugehörigen Header, eine Klasse je Datei
   Shaders/            toon | unlit | skybox (.vert / .frag)
-  Textures/           Ball, Gras, Skybox/ (Cubemap-Seiten)
+  Textures/           Ball, Gras, Holz, Sandstein, Skybox/ (Cubemap)
 Libraries/            GLFW, GLAD, GLM, stb_image (mitgeliefert)
 ```
